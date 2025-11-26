@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>❄️ 2025 京阪 Vibe 行程 App (增強版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定義滾動條樣式，讓它更有 Vibe */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #a855f7; /* 紫色 Vibe */
+            border-radius: 10px;
+        }
+        /* 卡片彈出效果 */
+        .card-enter {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .card-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans p-4 sm:p-8">
+
+    <header class="mb-8">
+        <h1 class="text-4xl font-extrabold text-purple-700 tracking-tight">
+            ⚡ 2025 京阪 Vibe 行程 ⚡
+        </h1>
+        <p class="text-lg text-gray-500 mt-1">
+            出發日期: 11/29 | 主題: 京都/大阪深度文化與娛樂
+        </p>
+    </header>
+
+    <div class="mb-8 overflow-x-auto whitespace-nowrap py-3 bg-white rounded-xl shadow-lg">
+        <div id="date-tabs" class="inline-flex space-x-2 p-2">
+            </div>
+    </div>
+
+    <div id="itinerary-content">
+        </div>
+
+    <script>
+        // 您的詳細行程數據 (新增了 temp 氣溫資訊)
+        const itineraryData = [
+            {
+                date: "2025/11/29", day: "星期六", location: "京都", temp: "10°C / 18°C (抵達日)",
+                activities: [
+                    { time: "04:30", description: "出發 Uber", icon: "🚗" },
+                    { time: "04:55", description: "抵達小港機場", icon: "✈️" },
+                    { time: "06:55", description: "小港機場 : 起飛", icon: "🛫" },
+                    { time: "10:40", description: "抵達:關西機場 (出關)", icon: "🛬", map: "關西國際機場" },
+                    { time: "12:00", description: "午餐: 超商用餐", icon: "🍜" },
+                    { time: "13:00", description: "前往京都飯店 (約2hr)", icon: "🚅", map: "RIHGA PLACE Kyoto" }, // 新增map作為下一站路線起點
+                    { time: "15:30", description: "抵達飯店 RIHGA PLACE 辦理入住 + 休息", icon: "🏨", map: "RIHGA PLACE Kyoto" },
+                    { time: "18:00", description: "前往晚餐 (約20min)", icon: "🚶" },
+                    { time: "18:30", description: "晚餐: 空蟬亭", icon: "🍽️", map: "空蟬亭" },
+                    { time: "20:00", description: "森田屋超市 SUINA室町店", icon: "🛒", map: "森田屋 SUINA室町店" },
+                ]
+            },
+            {
+                date: "2025/11/30", day: "星期日", location: "京都", temp: "5°C / 12°C",
+                activities: [
+                    { time: "06:00", description: "嵐山 (起床)", icon: "🌅" },
+                    { time: "08:00", description: "準備出門", icon: "👕" },
+                    { time: "09:40", description: "集合位置: 京都車站八條口觀光巴士停車場()", icon: "🚌", map: "京都車站八條口" },
+                    { time: "11:00", description: "小火車嵯峨站 / 保津川遊船", icon: "🚂", map: "保津川遊船" },
+                    { time: "13:30", description: "咖啡廳休息", icon: "☕" },
+                    { time: "14:00", description: "自由時間", icon: "🛍️" },
+                    { time: "15:00", description: "米菲櫻花廚房 嵐山店", icon: "🐰", map: "米菲櫻花廚房 嵐山店" },
+                    { time: "17:00", description: "準備回程", icon: "🚌", map: "京都車站八條口" }, // 新增map作為下一站路線起點
+                    { time: "18:00", description: "抵達:京都車站八條口觀光巴士停車場", icon: "📍" },
+                    { time: "19:30", description: "晚餐: 挽肉與米", icon: "🥩", map: "挽肉と米 京都" },
+                    { time: "20:30", description: "花見小路", icon: "🏮", map: "花見小路" },
+                ]
+            },
+            {
+                date: "2025/12/01", day: "星期一", location: "京都", temp: "5°C / 11°C",
+                activities: [
+                    { time: "06:00", description: "清水寺/伏見稻荷 (起床)", icon: "🌅" },
+                    { time: "09:00", description: "麗和服 (開始時間:09:00)", icon: "👘", map: "京都麗和服" },
+                    { time: "14:00", description: "伏見稻荷 (自由活動)", icon: "⛩️", map: "伏見稻荷大社" },
+                    { time: "17:30", description: "錦市場", icon: "🛍️", map: "錦市場" },
+                    { time: "18:30", description: "晚餐: 錦市場美食探索", icon: "🍢" },
+                    { time: "20:00", description: "晚餐: 挽肉與米", icon: "🥩", map: "挽肉と米 京都" },
+                ]
+            },
+            {
+                date: "2025/12/02", day: "星期二", location: "京都", temp: "6°C / 12°C",
+                activities: [
+                    { time: "06:00", description: "天橋立/伊根 (起床)", icon: "🌅" },
+                    { time: "08:00", description: "準備出門", icon: "👕" },
+                    { time: "08:40", description: "08:40出發", icon: "🚌", map: "京都車站八條口" },
+                    { time: "09:50", description: "集合位置: 京都車站八條口觀光巴士停車場", icon: "📍" },
+                    { time: "11:00", description: "天橋立", icon: "🌲", map: "天橋立" },
+                    { time: "12:00", description: "保津川遊船 (約1hr)", icon: "🚢" },
+                    { time: "14:30", description: "伊根舟屋", icon: "🏠", map: "伊根舟屋" },
+                    { time: "17:00", description: "準備回程", icon: "🚌", map: "京都車站八條口" }, // 新增map作為下一站路線起點
+                    { time: "18:00", description: "回程: 抵達京都車站", icon: "📍" },
+                    { time: "19:30", description: "晚餐: Sukiyaki Kimura", icon: "🥘", map: "すき焼き 木村" },
+                ]
+            },
+            {
+                date: "2025/12/03", day: "星期三", location: "京都/大阪", temp: "7°C / 14°C",
+                activities: [
+                    { time: "06:00", description: "起床/Check out", icon: "🌅" },
+                    { time: "09:00", description: "京都: check out / 前往大阪", icon: "🚅", map: "大阪車站" }, // 新增map作為下一站路線起點
+                    { time: "10:00", description: "抵達: 大阪車站 / 寄放行李", icon: "🛍️", map: "大阪車站" },
+                    { time: "11:00", description: "午餐: 自由選擇", icon: "🍜" },
+                    { time: "12:30", description: "前往 : 勝尾寺", icon: "⛩️", map: "勝尾寺" },
+                    { time: "16:30", description: "Hommachi : Check in", icon: "🏨", map: "本町站附近飯店" },
+                    { time: "17:30", description: "前往心齋橋", icon: "🚶", map: "心齋橋PARCO" }, // 新增map作為下一站路線起點
+                    { time: "18:00", description: "大阪心齋橋PARCO百貨: 白熊店 (~20:00)", icon: "🐻", map: "心齋橋PARCO" },
+                    { time: "19:30", description: "晚餐: 一蘭拉麵 (難波御堂筋店)", icon: "🍜", map: "一蘭拉麵 難波御堂筋店" },
+                    { time: "20:00", description: "章魚燒 : たこ焼道楽わなか 道頓堀店", icon: "🐙", map: "たこ焼道楽わなか 道頓堀店" },
+                ]
+            },
+            {
+                date: "2025/12/04", day: "星期四", location: "大阪", temp: "8°C / 15°C",
+                activities: [
+                    { time: "08:00", description: "起床 / 準備出門", icon: "🌅", map: "日本環球影城" }, // 新增map作為下一站路線起點
+                    { time: "08:30", description: "抵達: 環球影城", icon: "🎢", map: "日本環球影城" },
+                    { time: "11:30", description: "小小兵瘋狂任務～成為大壞蛋之路～", icon: "🍌" },
+                    { time: "13:00", description: "哈利波特™區域入園", icon: "🪄" },
+                    { time: "13:30", description: "鷹馬飛行™", icon: "🦅" },
+                    { time: "17:00", description: "超級任天堂世界區域入園", icon: "🍄" },
+                    { time: "17:30", description: "瑪利歐賽車～庫巴的挑戰書～", icon: "🏎️" },
+                    { time: "18:00", description: "耀西冒險", icon: "🦖" },
+                    { time: "18:30", description: "咚奇剛的瘋狂礦車", icon: "🦍", map: "十八番 章魚燒" }, // 新增map作為下一站路線起點
+                    { time: "20:00", description: "晚餐: 章魚燒: 十八番 / 道頓堀美食", icon: "🐙", map: "十八番 章魚燒" },
+                ]
+            },
+            {
+                date: "2025/12/05", day: "星期五", location: "大阪", temp: "8°C / 14°C",
+                activities: [
+                    { time: "06:30", description: "起床", icon: "🌅", map: "通天閣" }, // 新增map作為下一站路線起點
+                    { time: "07:00", description: "通天閣/難波八阪神社", icon: "⛩️" },
+                    { time: "10:00", description: "難波八阪神社", icon: "🦁", map: "難波八阪神社" },
+                    { time: "11:30", description: "中餐: 串炸 天狗", icon: "🍤", map: "串かつ天狗" },
+                    { time: "15:00", description: "Harukas300展望台", icon: "🏙️", map: "阿倍野 Harukas 300" },
+                    { time: "17:30", description: "晚餐: 燒肉_南一園", icon: "🥩", map: "燒肉南一園" },
+                    { time: "18:00", description: "前往心齋橋", icon: "🛍️" },
+                    { time: "21:00", description: "晚餐: 味乃家御好燒", icon: "🥞", map: "味乃家 御好燒" },
+                ]
+            },
+            {
+                date: "2025/12/06", day: "星期六", location: "大阪 (回程)", temp: "7°C / 15°C",
+                activities: [
+                    { time: "07:00", description: "起床", icon: "🌅" },
+                    { time: "08:00", description: "準備出門", icon: "👕" },
+                    { time: "08:30", description: "前往關西機場 (車程約1hr)", icon: "🚝", map: "關西國際機場" }, // 新增map作為下一站路線起點
+                    { time: "09:30", description: "抵達: 關西機場", icon: "✈️", map: "關西國際機場" },
+                    { time: "10:00", description: "逛免稅店行程", icon: "🛍️" },
+                    { time: "11:05", description: "關西機場 : 起飛", icon: "🛫" },
+                    { time: "13:50", description: "抵達: 小港機場", icon: "🛬" },
+                ]
+            },
+        ];
+
+        const tabsContainer = document.getElementById('date-tabs');
+        const contentContainer = document.getElementById('itinerary-content');
+        let activeTab = null;
+
+        // 輔助函數：生成 Google 地圖搜尋連結
+        function createGoogleSearchLink(query) {
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+        }
+
+        // 輔助函數：生成 Google 地圖路線連結
+        function createGoogleRouteLink(origin, destination) {
+            return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+        }
+
+        // 1. 生成日期選擇按鈕 (Tabs)
+        itineraryData.forEach((dayData, index) => {
+            const button = document.createElement('button');
+            const isActive = index === 0; 
+            
+            button.className = `p-3 rounded-lg text-sm font-semibold transition-all duration-300 shadow-md ${isActive ? 'bg-purple-600 text-white transform scale-105' : 'bg-gray-200 text-gray-700 hover:bg-purple-100'}`;
+            button.textContent = `${dayData.date.slice(5)} (${dayData.day.slice(2)})`;
+            button.setAttribute('data-day', dayData.date);
+
+            if (isActive) {
+                activeTab = button;
+            }
+
+            button.addEventListener('click', () => {
+                setActiveDay(dayData.date);
+            });
+            tabsContainer.appendChild(button);
+        });
+
+        // 2. 設置活動日期並切換顯示
+        function setActiveDay(date) {
+            if (activeTab) {
+                activeTab.classList.remove('bg-purple-600', 'text-white', 'scale-105');
+                activeTab.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-purple-100');
+            }
+
+            const newActiveTab = document.querySelector(`[data-day="${date}"]`);
+            if (newActiveTab) {
+                newActiveTab.classList.add('bg-purple-600', 'text-white', 'scale-105');
+                newActiveTab.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-purple-100');
+                activeTab = newActiveTab;
+            }
+
+            displayItinerary(date);
+        }
+
+        // 3. 渲染每日行程內容
+        function displayItinerary(date) {
+            const dayData = itineraryData.find(d => d.date === date);
+            if (!dayData) return;
+
+            contentContainer.innerHTML = '';
+
+            // 標題卡片 (包含氣溫)
+            const headerCard = document.createElement('div');
+            headerCard.className = 'bg-white p-6 rounded-xl shadow-xl mb-6 card-enter card-enter-active';
+            headerCard.innerHTML = `
+                <h2 class="text-3xl font-bold text-gray-800">${dayData.date} - ${dayData.location}</h2>
+                <p class="text-purple-500 mt-1">${dayData.day}</p>
+                <div class="mt-2 text-xl font-bold text-red-500">
+                    🌡️ 預估氣溫: ${dayData.temp}
+                </div>
+            `;
+            contentContainer.appendChild(headerCard);
+
+            // 時間軸主體
+            const timeline = document.createElement('div');
+            timeline.className = 'relative border-l-4 border-purple-300 ml-2';
+
+            dayData.activities.forEach((activity, index) => {
+                const activityCard = document.createElement('div');
+                activityCard.className = 'mb-8 ml-6 relative transform hover:scale-[1.01] transition-all duration-300 card-enter';
+                
+                // 景點卡片內容
+                let cardContent = `
+                    <div class="p-4 bg-white rounded-xl shadow-lg">
+                        <div class="absolute w-4 h-4 bg-purple-600 rounded-full mt-1.5 -left-8 border-4 border-white"></div>
+                        <p class="text-2xl font-bold text-purple-700 mb-1">${activity.time}</p>
+                        <p>
+                            <span class="text-lg font-semibold text-gray-900">${activity.icon} ${activity.description}</span>
+                `;
+
+                // 加入 Google 地點搜尋連結
+                if (activity.map) {
+                    const searchLink = createGoogleSearchLink(activity.map);
+                    cardContent += `
+                        <a href="${searchLink}" target="_blank" class="text-purple-500 hover:text-purple-700 ml-2 text-sm whitespace-nowrap font-medium">
+                            [地點搜尋 🗺️]
+                        </a>
+                    `;
+                }
+
+                cardContent += `
+                        </p>
+                    </div>
+                `;
+                
+                activityCard.innerHTML = cardContent;
+                
+                // **新增：景點對景點路線連結**
+                const nextActivity = dayData.activities[index + 1];
+                
+                // 檢查是否有當前地點 (map) 且下一站地點 (map) 也存在
+                if (activity.map && nextActivity && nextActivity.map) {
+                    const origin = activity.map;
+                    const destination = nextActivity.map;
+                    const routeLink = createGoogleRouteLink(origin, destination);
+
+                    const routeButton = document.createElement('a');
+                    routeButton.href = routeLink;
+                    routeButton.target = '_blank';
+                    routeButton.className = 'inline-block mt-2 ml-6 px-4 py-2 bg-pink-500 text-white text-sm font-bold rounded-full shadow-md hover:bg-pink-600 transition duration-300';
+                    routeButton.innerHTML = `
+                        👉 前往下一站路線: ${destination}
+                    `;
+                    activityCard.appendChild(routeButton);
+                }
+
+                timeline.appendChild(activityCard);
+
+                // 應用動畫類別
+                setTimeout(() => {
+                    activityCard.classList.add('card-enter-active');
+                }, index * 100);
+            });
+
+            contentContainer.appendChild(timeline);
+        }
+
+        // 頁面載入時，預設顯示第一天的行程
+        if (itineraryData.length > 0) {
+            const firstDate = itineraryData[0].date;
+            setActiveDay(firstDate);
+        }
+    </script>
+</body>
+</html>
