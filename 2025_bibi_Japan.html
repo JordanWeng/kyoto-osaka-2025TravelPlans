@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025_Bibi_京阪行程表</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 使用 Inter 字體 */
+        :root { font-family: 'Inter', sans-serif; }
+        /* 自定義滾動條樣式，讓行程區域更好看 */
+        .itinerary-scroll::-webkit-scrollbar { width: 6px; }
+        .itinerary-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .itinerary-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .itinerary-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 導航列水平滾動條樣式 */
+        .tab-scroll::-webkit-scrollbar { height: 4px; }
+        .tab-scroll::-webkit-scrollbar-track { background: #e0e7ff; /* light indigo */ }
+        .tab-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 2px; }
+        .tab-scroll::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+
+        .day-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+ /* 背景圖片樣式 */
+        body.has-bg {
+            background-image: url('bgimg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* 讓背景圖片固定不動 */
+        }
+        body.has-bg .bg-gray-50 {
+            background-color: rgba(249, 250, 251, 0.8); /* 為內容區域添加半透明背景，讓文字更清晰 */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8 has-bg">
+
+    <div id="app" class="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
+        <!-- 標題區 -->
+        <header class="p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg relative">
+            <h1 class="text-3xl font-extrabold tracking-tight">2025_bibiJapan_京阪行程表</h1>
+            <p class="mt-1 text-blue-200">2025/11/29 ~ 2025/12/6：京都、大阪八日遊</p>
+            <div class="absolute top-4 right-4">
+                <a href="info.html" target="_blank" rel="noopener noreferrer" 
+                   class="inline-flex items-center justify-center p-2 rounded-full bg-blue-500 hover:bg-blue-400 transition duration-150 text-white shadow-md"
+                   title="更多資訊">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Tab 導航區 - 已調整為水平單行且可滾動 -->
+        <!-- 注意：使用 space-x-1 確保按鈕之間有間距 -->
+        <nav id="day-tabs" class="flex p-2 border-b border-gray-200 bg-gray-100 overflow-x-auto space-x-1 tab-scroll"></nav>
+
+        <!-- 行程內容區 -->
+        <div id="itinerary-content" class="p-4 md:p-6 h-[70vh] overflow-y-auto itinerary-scroll">
+            <div class="text-center py-10 text-gray-500">
+                <i data-lucide="calendar-check" class="w-12 h-12 mx-auto mb-3 text-indigo-400"></i>
+                <p class="font-semibold">請點擊上方日期切換行程</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 設定與初始化 ---
+        const days = 8;
+        const apiKey = ""; // API Key 保持空白，Canvas 會自動注入
+
+        // 模擬天氣數據
+        // 在沒有 API 鑰匙和 2025 年份的實際預報下，我們提供一個合理的模擬範圍
+        function getWeatherHtml(day) {
+            const temps = [
+                { min: 10, max: 15, icon: 'sun-snow', text: '晴時多雲' }, // Day 1
+                { min: 9, max: 14, icon: 'cloud-sun', text: '多雲偶雨' }, // Day 2
+                { min: 8, max: 13, icon: 'cloud-drizzle', text: '陰有陣雨' }, // Day 3
+                { min: 8, max: 12, icon: 'snow', text: '微雪/寒冷' }, // Day 4
+                { min: 9, max: 14, icon: 'cloud-sun', text: '多雲轉晴' }, // Day 5
+                { min: 10, max: 15, icon: 'sun', text: '晴朗' }, // Day 6
+                { min: 11, max: 16, icon: 'sun', text: '晴朗' }, // Day 7
+                { min: 10, max: 15, icon: 'cloud-sun', text: '多雲' }  // Day 8
+            ];
+            const data = temps[(day - 1) % temps.length];
+
+            return `
+                <div class="flex items-center text-sm text-gray-600 space-x-2 p-3 bg-gray-100 rounded-lg mt-2 shadow-inner">
+                    <i data-lucide="${data.icon}" class="w-5 h-5 text-indigo-500"></i>
+                    <span class="font-medium">${data.text}</span>
+                    <span class="font-bold text-lg text-red-500">${data.max}°C</span>
+                    <span class="text-gray-400">/</span>
+                    <span class="font-bold text-lg text-blue-500">${data.min}°C</span>
+                    <span class="ml-auto text-xs text-gray-500">（11月下旬至12月上旬氣溫參考）</span>
+                </div>
+            `;
+        }
+
+        /**
+         * 產生 Google Search 連結
+         * @param {string} query 搜尋關鍵字
+         * @returns {string} HTML 連結
+         */
+        function generateGoogleSearch(query) {
+            const encodedQuery = encodeURIComponent(query);
+            return `
+                <a href="https://www.google.com/search?q=${encodedQuery}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="inline-block align-middle ml-1 text-gray-500 hover:text-blue-600 transition duration-150 p-1 rounded-full hover:bg-blue-100"
+                   title="Google 搜尋 ${query}">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </a>
+            `;
+        }
+
+        /**
+         * 產生 Google Maps 路線連結 (從上一個點到當前點)
+         * @param {number} startLat 起點緯度
+         * @param {number} startLon 起點經度
+         * @param {number} endLat 終點緯度
+         * @param {number} endLon 終點經度
+         * @returns {string} HTML 連結
+         */
+        function generateRouteLink(startLat, startLon, endLat, endLon) {
+            if (!startLat || !startLon || !endLat || !endLon) {
+                return '<span class="text-xs text-red-400 ml-2"> (缺少地圖座標)</span>';
+            }
+            const startCoords = `${startLat},${startLon}`;
+            const endCoords = `${endLat},${endLon}`;
+            // Google Maps URL 格式：/dir/ 起點/終點
+            const url = `https://www.google.com/maps/dir/${startCoords}/${endCoords}/data=!4m2!4m1!3e3`; // !3e3 是設定為大眾運輸
+            
+            return `
+                <a href="${url}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition duration-150 mt-2 p-1 rounded-md hover:bg-indigo-50">
+                    <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i>
+                    查看路線規劃
+                </a>
+            `;
+        }
+
+        // 行程資料結構化
+        // 包含景點名稱 (name) 和地理座標 (lat, lon) 以啟用地圖功能
+        const itineraryData = [
+            {
+                day: 1, date: "11/29 (六)", city: "京都", title: "高雄出發，抵達京都",
+                weather: 1,
+                activities: [
+                    { time: "04:30", description: "出發 (Uber 前往小港機場)", name: "高雄小港機場", lat: 22.5769, lon: 120.3503 },
+                    { time: "04:55", description: "到小港機場 (KHH)", name: "高雄小港機場", lat: 22.5769, lon: 120.3503 },
+                    { time: "06:55", description: "小港機場：起飛", name: "高雄小港機場", lat: 22.5769, lon: 120.3503 },
+                    { time: "10:40", description: "抵達：關西國際機場 (KIX)", name: "關西國際機場 KIX", lat: 34.4289, lon: 135.2406 },
+                    { time: "11:00", description: "(出關 & 移動) 午餐: 超商用餐", name: "關西國際機場 KIX", lat: 34.4289, lon: 135.2406 },
+                    { time: "13:00", description: "前往京都飯店 RIHGA PLACE (約 2hr)", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "15:30", description: "抵達飯店 辦理入住 + 休息", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "18:30", description: "晚餐: 空蟬亭 (炸豬排)", name: "空蝉亭", lat: 34.9881, lon: 135.7588 }, // 鄰近飯店
+                    { time: "20:00", description: "森田屋超市 SUINA室町店 購物", name: "森田屋 SUINA室町店", lat: 35.0069, lon: 135.7580 } // 鄰近四條烏丸
+                ]
+            },
+            {
+                day: 2, date: "11/30 (日)", city: "京都", title: "嵐山",
+                weather: 2,
+                activities: [
+                    { time: "07:00", description: "起床", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "08:00", description: "準備出門 (RIHGA PLACE)", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "09:30", description: "集合: 京都車站八條口觀光巴士停車場", name: "京都車站八條口", lat: 34.9859, lon: 135.7588 },
+                    { time: "11:00", description: "嵐山：小火車嵯峨站 (保津川遊船)", name: "保津川遊船", lat: 35.0118, lon: 135.6806 },
+                    { time: "12:00", description: "保津川遊船 (搭船)", name: "保津川遊船", lat: 35.0118, lon: 135.6806 },
+                    { time: "13:30", description: "咖啡廳休息", name: "嵐山咖啡廳", lat: 35.0103, lon: 135.6738 },
+                    { time: "14:00", description: "嵐山 自由時間 (竹林、渡月橋)", name: "嵐山 竹林", lat: 35.0134, lon: 135.6698 },
+                    { time: "15:00", description: "米菲櫻花廚房 嵐山店", name: "米菲櫻花廚房 嵐山店", lat: 35.0075, lon: 135.6774 },
+                    { time: "17:00", description: "準備回程", name: "嵐山", lat: 35.0103, lon: 135.6738 },
+                    { time: "18:00", description: "抵達: 京都車站八條口觀光巴士停車場", name: "京都車站八條口", lat: 34.9859, lon: 135.7588 },
+                    { time: "20:00", description: "晚餐: 挽肉と米 京都", name: "挽肉と米 京都", lat: 35.0097, lon: 135.7667 }, // 三條河原町附近
+                    { time: "21:00", description: "花見小路 散步", name: "花見小路", lat: 35.0006, lon: 135.7725 }
+                ]
+            },
+            {
+                day: 3, date: "12/1 (一)", city: "京都", title: "清水寺、伏見稻荷神社",
+                weather: 3,
+                activities: [
+                    { time: "07:00", description: "起床", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "08:00", description: "準備出門 (RIHGA PLACE)", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "09:00", description: "開始時間: 麗和服 換裝", name: "麗和服", lat: 34.9965, lon: 135.7831 }, // 清水寺附近
+                    { time: "11:00", description: "清水寺 參觀", name: "清水寺", lat: 34.9948, lon: 135.7850 },
+                    { time: "14:00", description: "伏見稻荷 參觀 (千本鳥居)", name: "伏見稻荷大社", lat: 34.9671, lon: 135.7727 },
+                    { time: "17:30", description: "錦市場", name: "錦市場", lat: 35.0044, lon: 135.7610 },
+                    { time: "18:00", description: "晚餐: 錦市場 小吃", name: "錦市場", lat: 35.0044, lon: 135.7610 },
+                    { time: "20:00", description: "夜訪清水寺 / 京都車站", name: "夜訪清水寺", lat: 34.9948, lon: 135.7850 }
+                ]
+            },
+            {
+                day: 4, date: "12/2 (二)", city: "京都", title: "天橋立、伊根舟屋",
+                weather: 4,
+                activities: [
+                    { time: "07:00", description: "起床", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "08:00", description: "準備出門 (RIHGA PLACE)", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "09:50", description: "集合: 京都車站八條口觀光巴士停車場", name: "京都車站八條口", lat: 34.9859, lon: 135.7588 },
+                    { time: "11:00", description: "天橋立 觀光", name: "天橋立", lat: 35.5683, lon: 135.1911 },
+                    { time: "12:00", description: "午餐 (天橋立/伊根地區)", name: "天橋立", lat: 35.5683, lon: 135.1911 },
+                    { time: "14:30", description: "伊根舟屋 自由時間", name: "伊根舟屋", lat: 35.7681, lon: 135.2891 },
+                    { time: "17:00", description: "準備回程", name: "伊根舟屋", lat: 35.7681, lon: 135.2891 },
+                    { time: "18:00", description: "回程: 抵達京都車站", name: "京都車站", lat: 34.9859, lon: 135.7588 },
+                    { time: "19:30", description: "晚餐: Sukiyaki Kimura (壽喜燒)", name: "名代 キムラ すき焼", lat: 35.0039, lon: 135.7679 }, // 四條河原町
+                    { time: "21:30", description: "回飯店休息", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 }
+                ]
+            },
+            {
+                day: 5, date: "12/3 (三)", city: "大阪", title: "移動日/大阪逛街",
+                weather: 5,
+                activities: [
+                    { time: "07:00", description: "起床", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "08:00", description: "準備出門 (RIHGA PLACE)", name: "RIHGA PLACE Kyoto", lat: 34.9859, lon: 135.7588 },
+                    { time: "08:40", description: "京都: check out / 前往大阪", name: "京都車站", lat: 34.9859, lon: 135.7588 },
+                    { time: "10:00", description: "抵達: 大阪車站 寄放行李", name: "大阪車站", lat: 34.7022, lon: 135.4958 },
+                    { time: "11:00", description: "前往: 勝尾寺", name: "勝尾寺", lat: 34.8576, lon: 135.4975 },
+                    { time: "13:00", description: "勝尾寺 (約 2hr)", name: "勝尾寺", lat: 34.8576, lon: 135.4975 },
+                    { time: "16:30", description: "Hommachi 飯店 Check in", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "17:30", description: "心齋橋 購物行程", name: "心齋橋", lat: 34.6738, lon: 135.5000 },
+                    { time: "18:00", description: "大阪心齋橋PARCO百貨: 白熊店 (~20:00)", name: "心齋橋PARCO百貨", lat: 34.6733, lon: 135.5015 },
+                    { time: "19:30", description: "晚餐: 一蘭拉麵 (難波御堂筋店)", name: "一蘭拉麵 難波御堂筋店", lat: 34.6678, lon: 135.5000 },
+                    { time: "20:00", description: "章魚燒(擇一): たこ焼道楽わなか 道頓堀店", name: "たこ焼道楽わなか 道頓堀店", lat: 34.6690, lon: 135.5020 },
+                    { time: "20:05", description: "章魚燒: 十八番 (PK)", name: "章魚燒 十八番", lat: 34.6690, lon: 135.5020 }
+                ]
+            },
+            {
+                day: 6, date: "12/4 (四)", city: "大阪", title: "環球影城",
+                weather: 6,
+                activities: [
+                    { time: "07:00", description: "起床", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "08:00", description: "準備出門 (Hotel Cordia Osaka Hommachi)", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "08:30", description: "抵達: 日本環球影城 USJ", name: "日本環球影城 USJ", lat: 34.6657, lon: 135.4323 },
+                    { time: "11:00", description: "小小兵瘋狂任務~成為大壞蛋之路~", name: "小小兵瘋狂任務", lat: 34.6657, lon: 135.4323 },
+                    { time: "13:00", description: "哈利波特™區域入園", name: "哈利波特魔法世界", lat: 34.6657, lon: 135.4323 },
+                    { time: "13:30", description: "鷹馬飛行™", name: "鷹馬飛行", lat: 34.6657, lon: 135.4323 },
+                    { time: "17:00", description: "超級任天堂世界區域入園", name: "超級任天堂世界", lat: 34.6657, lon: 135.4323 },
+                    { time: "17:30", description: "瑪利歐賽車~庫巴的挑戰書~", name: "瑪利歐賽車", lat: 34.6657, lon: 135.4323 },
+                    { time: "18:30", description: "咚奇剛的瘋狂礦車", name: "咚奇剛的瘋狂礦車", lat: 34.6657, lon: 135.4323 },
+                    { time: "19:30", description: "晚餐: 味乃家御好燒 (或 USJ 園內)", name: "味乃家 御好燒", lat: 34.6654, lon: 135.5015 } // 難波附近
+                ]
+            },
+            {
+                day: 7, date: "12/5 (五)", city: "大阪", title: "大阪",
+                weather: 7,
+                activities: [
+                    { time: "07:00", description: "起床", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "08:00", description: "準備出門 (Hotel Cordia Osaka Hommachi)", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "09:00", description: "(車程約 1hr) 前往通天閣", name: "通天閣", lat: 34.6525, lon: 135.5063 },
+                    { time: "09:30", description: "難波八阪神社 (大獅頭)", name: "難波八阪神社", lat: 34.6617, lon: 135.5002 },
+                    { time: "11:30", description: "中餐: 串炸 天狗 (南陽通商店街)", name: "串炸 天狗", lat: 34.6525, lon: 135.5063 }, // 新世界/通天閣周邊
+                    { time: "15:00", description: "Harukas 300 展望台", name: "Abeno Harukas 300", lat: 34.6469, lon: 135.5140 },
+                    { time: "17:30", description: "晚餐: 燒肉_南一園", name: "炭火焼肉 南一園", lat: 34.6654, lon: 135.5015 }, // 難波
+                    { time: "18:00", description: "購物行程 (難波/心齋橋)", name: "心齋橋", lat: 34.6738, lon: 135.5000 },
+                    { time: "20:00", description: "前往心齋橋 (購物)", name: "心齋橋", lat: 34.6738, lon: 135.5000 }
+                ]
+            },
+            {
+                day: 8, date: "12/6 (六)", city: "大阪", title: "回程日",
+                weather: 8,
+                activities: [
+                    { time: "07:00", description: "起床", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "08:00", description: "準備出門 (Hotel Cordia Osaka Hommachi)", name: "Hotel Cordia Osaka Hommachi", lat: 34.6853, lon: 135.5034 },
+                    { time: "09:30", description: "抵達: 關西國際機場 (KIX)", name: "關西國際機場 KIX", lat: 34.4289, lon: 135.2406 },
+                    { time: "10:00", description: "逛免稅店行程", name: "關西國際機場 KIX", lat: 34.4289, lon: 135.2406 },
+                    { time: "11:05", description: "關西國際機場：起飛", name: "關西國際機場 KIX", lat: 34.4289, lon: 135.2406 },
+                    { time: "13:50", description: "抵達: 高雄小港機場", name: "高雄小港機場", lat: 22.5769, lon: 120.3503 }
+                ]
+            }
+        ];
+
+        // --- 渲染邏輯 ---
+
+        let currentDay = 1;
+
+        /**
+         * 渲染行程內容
+         * @param {number} dayNumber 當前是第幾天
+         */
+        function renderItinerary(dayNumber) {
+            currentDay = dayNumber;
+            const data = itineraryData.find(d => d.day === dayNumber);
+            const contentDiv = document.getElementById('itinerary-content');
+            let html = '';
+            
+            if (!data) {
+                contentDiv.innerHTML = '<p class="text-center py-10 text-red-500">行程資料遺失。</p>';
+                return;
+            }
+
+            // 標題和天氣
+            html += `
+                <div class="mb-6 pb-4 border-b border-indigo-200">
+                    <h2 class="text-3xl font-bold text-gray-800">${data.title}</h2>
+                    <p class="text-xl font-medium text-indigo-500 mt-1">${data.city} (${data.date})</p>
+                    ${getWeatherHtml(data.day)}
+                </div>
+            `;
+
+            // 行程列表
+            html += '<div class="space-y-6">';
+
+            let previousActivity = null;
+
+            data.activities.forEach((activity, index) => {
+                const isMajorPoint = activity.name && activity.lat && activity.lon;
+                
+                // 決定路線連結的起點和終點
+                let routeLinkHtml = '';
+                if (isMajorPoint && previousActivity && previousActivity.lat && previousActivity.lon) {
+                    routeLinkHtml = generateRouteLink(
+                        previousActivity.lat, 
+                        previousActivity.lon, 
+                        activity.lat, 
+                        activity.lon
+                    );
+                }
+
+                // 決定搜尋連結
+                const searchName = activity.name || activity.description.split(' ')[0];
+                const searchLink = generateGoogleSearch(searchName);
+
+                html += `
+                    <div class="relative pl-10 border-l-4 border-indigo-300">
+                        <!-- 時間軸點 -->
+                        <div class="absolute -left-3 top-0 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                        </div>
+
+                        <!-- 內容卡片 -->
+                        <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition duration-300 transform hover:-translate-y-0.5">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-lg font-extrabold text-indigo-600">${activity.time}</span>
+                                <span class="text-xs font-semibold text-gray-400">#Day${data.day}</span>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 leading-snug">
+                                ${activity.description}
+                                ${searchLink}
+                            </h3>
+                            
+                            ${isMajorPoint ? `
+                                <div class="mt-2 flex flex-wrap items-center space-x-4">
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <i data-lucide="map" class="w-3 h-3 mr-1"></i>
+                                        <span>地點: ${activity.name}</span>
+                                    </div>
+                                    ${routeLinkHtml}
+                                </div>
+                            ` : `<p class="text-sm text-gray-500 mt-1 italic">未指定地圖地點</p>`}
+                        </div>
+                    </div>
+                `;
+
+                // 更新上一個活動的座標，但只在活動有指定座標時才更新
+                if (activity.lat && activity.lon) {
+                    previousActivity = activity;
+                }
+            });
+
+            html += '</div>';
+
+            contentDiv.innerHTML = html;
+            
+            // 重新初始化 Lucide 圖標
+            lucide.createIcons();
+            
+            // 更新 Tab 樣式
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                const tabDay = parseInt(tab.dataset.day);
+                if (tabDay === dayNumber) {
+                    tab.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'font-bold');
+                    tab.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-indigo-100');
+                } else {
+                    tab.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'font-bold');
+                    tab.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-indigo-100');
+                }
+            });
+        }
+
+        /**
+         * 渲染 Tab 導航列
+         */
+        function renderTabs() {
+            const tabsNav = document.getElementById('day-tabs');
+            let tabHtml = '';
+            itineraryData.forEach(day => {
+                // 新增 whitespace-nowrap 確保文字不折行
+                tabHtml += `
+                    <button class="day-tab flex-grow min-w-[120px] p-3 rounded-lg text-center text-sm md:text-base transition duration-200 ease-in-out whitespace-nowrap" 
+                            data-day="${day.day}" 
+                            onclick="renderItinerary(${day.day})">
+                        ${day.date} ${day.city}
+                    </button>
+                `;
+            });
+            tabsNav.innerHTML = tabHtml;
+        }
+
+        // --- 啟動應用程式 ---
+        window.onload = () => {
+            renderTabs();
+            // 預設渲染第一天的行程
+            renderItinerary(1);
+        };
+    </script>
+</body>
+</html>
