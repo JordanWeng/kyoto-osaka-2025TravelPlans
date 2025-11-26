@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅遊餐廳與景點資訊 - 文字不折行</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f4f9;
+        }
+
+        /* 讓表格在容器內溢出時可以捲動 */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 基本表格樣式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            /* 移除最小寬度，讓內容來決定表格的最小寬度 */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top;
+            line-height: 1.5;
+            
+            /* 【關鍵修改】: 防止文字折行，讓內容保持在同一行 */
+            white-space: nowrap; 
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            position: sticky; /* 使表頭在橫向捲動時固定 */
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 響應式設計：在小螢幕上主要依靠 overflow-x: auto; 實現橫向捲動 */
+        @media screen and (max-width: 768px) {
+            .table-container {
+                padding: 5px;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>旅遊餐廳與景點資訊</h1>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>地區</th>
+                    <th>餐廳</th>
+                    <th>類型</th>
+                    <th>tabelog</th>
+                    <th>預約/記錄</th>
+                    <th>網址</th>
+                    <th>備註</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>京都</td>
+                    <td>三嶋亭 本店</td>
+                    <td>壽喜燒</td>
+                    <td>3.65</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>Sukiyaki Kimura - 京都河原町/壽喜燒</td>
+                    <td>壽喜燒</td>
+                    <td>3.5</td>
+                    <td>2025/12/02晚餐</td>
+                    <td><a href="https://autoreserve.com/zh-tw/reserve?restaurant_slug=RapHwPtZoVL3cDrPSk51&reserved_at=2025-12-02T19%3A15%3A00%2B09%3A00&party_size=2" target="_blank">預約網址</a></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>空蟬亭</td>
+                    <td>炸豬排</td>
+                    <td>3.8</td>
+                    <td>預約成功 2025/11/29晚餐</td>
+                    <td><a href="https://www.tablecheck.com/zh-TW/shops/karasemitei/reserve" target="_blank">預約網址</a></td>
+                    <td>可預訂日2025年10月1日(週三)。原則上座位可使用1小時。如果遲到超過15分鐘，請提前透過Instagram DM或電話聯絡我們。</td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>宮川豚衛門</td>
+                    <td>炸豬排</td>
+                    <td>3.54</td>
+                    <td></td>
+                    <td><a href="https://tabelog.com/tw/kyoto/A2601/A260201/26039226/dtlrvwlst/B507969486/?lid=unpickup_review" target="_blank">tabelog 網址</a></td>
+                    <td>休息日：星期一、星期二。透過店家的Instagram可以進行桌位預約，前一天還有空位。</td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>京都勝牛</td>
+                    <td>炸牛排</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>京都友都八喜店 / 京都站前店</td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>燒肉餐廳 牛樂亭</td>
+                    <td>燒肉</td>
+                    <td>3.4</td>
+                    <td></td>
+                    <td><a href="https://tabelog.com/tw/kyoto/A2601/A260201/26002583/" target="_blank">tabelog 網址</a></td>
+                    <td>可預訂日2025年09月01日。A4級黑毛牛。</td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>天婦羅定食 Makino 天丼京都寺町店</td>
+                    <td>天婦羅</td>
+                    <td>3.4</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>京都</td>
+                    <td>挽肉與米</td>
+                    <td>漢堡排</td>
+                    <td>3.52</td>
+                    <td>預約成功 2025/11/30晚餐</td>
+                    <td><a href="https://www.tablecheck.com/shops/hikinikutocome-kyoto/reserve" target="_blank">預約網址</a></td>
+                    <td>可預訂日2025年11月1日(週三)前預約。</td>
+                </tr>
+                <tr>
+                    <td>嵐山</td>
+                    <td>嵯峨豆腐 稻 北店</td>
+                    <td>日本料理</td>
+                    <td>3.49</td>
+                    <td></td>
+                    <td></td>
+                    <td>掲載保留</td>
+                </tr>
+                <tr>
+                    <td>嵐山</td>
+                    <td>五木茶屋 嵐山本店</td>
+                    <td>日本料理</td>
+                    <td>3.46</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>嵐山</td>
+                    <td>舞妓飯 嵐山店</td>
+                    <td>天婦羅</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>嵐山</td>
+                    <td>京都勝牛</td>
+                    <td>炸牛排</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>嵐山店</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>味乃家御好燒</td>
+                    <td>大阪燒</td>
+                    <td>3.6</td>
+                    <td></td>
+                    <td></td>
+                    <td>傳統大阪燒。可預訂日2025年9月18日(週四)前預約。</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>三野 美津濃</td>
+                    <td>大阪燒</td>
+                    <td>3.56</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>福太郎 本店</td>
+                    <td>大阪燒</td>
+                    <td>3.7</td>
+                    <td></td>
+                    <td></td>
+                    <td>無法預約</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>自由軒 難波本店</td>
+                    <td>日式西餐廳</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>Shabucho涮鍋町</td>
+                    <td>壽喜燒</td>
+                    <td>3.52</td>
+                    <td></td>
+                    <td></td>
+                    <td>A5黑毛和牛，7500-8000yen。</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>SUKIYAKI FUJIMOTOすき焼き藤もと</td>
+                    <td>壽喜燒</td>
+                    <td>3.4</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>焼肉ホルモン 万千</td>
+                    <td>燒肉</td>
+                    <td>3.64</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>麺匠の心つくし つるとんたん 宗右衛門町店</td>
+                    <td>烏龍麵</td>
+                    <td>3.43</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>千代松勝蓋飯</td>
+                    <td>炸豬排</td>
+                    <td>3.45</td>
+                    <td></td>
+                    <td></td>
+                    <td>炸豬排蓋飯，前力士經營。</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>達摩串炸 新世界總本店</td>
+                    <td>串炸</td>
+                    <td>3.46</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>達摩串炸 心齋橋店</td>
+                    <td>串炸</td>
+                    <td>3.3</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>Makino 難波千日前店</td>
+                    <td>串炸</td>
+                    <td>3.37</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>新世界 串かつ 八重勝 Yaekatsu </td>
+                    <td>串炸</td>
+                    <td>3.49</td>
+                    <td></td>
+                    <td></td>
+                    <td>無法預約、炸蛋。</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>越源</td>
+                    <td>串炸</td>
+                    <td>3.48</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>一蘭 難波御堂筋店</td>
+                    <td>拉麵</td>
+                    <td>3</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>おでん 花くじら 本店 花梨本店</td>
+                    <td>關東煮</td>
+                    <td>3.67</td>
+                    <td></td>
+                    <td></td>
+                    <td>花梨本店16:00-23:00。</td>
+                </tr>
+                <tr>
+                    <td>大阪</td>
+                    <td>大阪站置物櫃</td>
+                    <td>置物櫃</td>
+                    <td></td>
+                    <td></td>
+                    <td><a href="https://www.funtime.com.tw/blog/funtime/osaka-coin-locker" target="_blank">置物櫃資訊</a></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
